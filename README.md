@@ -1,2 +1,2 @@
-# Mm2-Halloween-
+HalloweenCloner.lua
 A real script
