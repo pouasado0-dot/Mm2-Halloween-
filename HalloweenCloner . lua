@@ -1,0 +1,300 @@
+
+-- 🎃 MM2 HALLOWEEN CLONER
+-- GUI visual para Delta Executor
+-- No modifica inventarios ni duplica armas reales.
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local old = playerGui:FindFirstChild("HalloweenCloner")
+if old then old:Destroy() end
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "HalloweenCloner"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+gui.DisplayOrder = 100
+gui.Parent = playerGui
+
+local purple = Color3.fromRGB(47, 20, 78)
+local orange = Color3.fromRGB(255, 139, 22)
+local white = Color3.fromRGB(255, 255, 255)
+
+local function create(class, props, parent)
+    local obj = Instance.new(class)
+    for key, value in pairs(props) do
+        obj[key] = value
+    end
+    obj.Parent = parent
+    return obj
+end
+
+local scale = Instance.new("UIScale")
+scale.Parent = nil
+
+local main = create("Frame", {
+    Name = "Main",
+    Size = UDim2.fromOffset(330, 455),
+    Position = UDim2.new(0.5, -165, 0.5, -227),
+    BackgroundColor3 = purple,
+    BorderSizePixel = 0,
+    Active = true,
+}, gui)
+
+scale.Parent = main
+
+create("UICorner", {
+    CornerRadius = UDim.new(0, 28)
+}, main)
+
+local outline = create("UIStroke", {
+    Color = Color3.fromRGB(173, 70, 255),
+    Thickness = 4,
+}, main)
+
+local gradient = create("UIGradient", {
+    Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(177, 67, 255)),
+        ColorSequenceKeypoint.new(1, orange),
+    }),
+    Rotation = 35,
+}, outline)
+
+local function text(parent, value, size, pos, font, color)
+    return create("TextLabel", {
+        Size = size,
+        Position = pos,
+        BackgroundTransparency = 1,
+        Text = value,
+        TextColor3 = color or white,
+        TextScaled = true,
+        Font = font or Enum.Font.GothamBold,
+    }, parent)
+end
+
+text(main, "MM2 🎃", UDim2.new(1, -20, 0, 49),
+    UDim2.fromOffset(10, 10), Enum.Font.GothamBlack)
+
+text(main, "HALLOWEEN CLONER",
+    UDim2.new(1, -20, 0, 37),
+    UDim2.fromOffset(10, 59), Enum.Font.GothamBlack)
+
+local input = create("TextBox", {
+    Size = UDim2.new(1, -40, 0, 55),
+    Position = UDim2.fromOffset(20, 112),
+    BackgroundColor3 = Color3.fromRGB(250, 248, 255),
+    TextColor3 = Color3.fromRGB(55, 45, 65),
+    PlaceholderColor3 = Color3.fromRGB(160, 155, 165),
+    PlaceholderText = "Nombre del arma...",
+    Text = "",
+    ClearTextOnFocus = false,
+    TextScaled = true,
+    Font = Enum.Font.Gotham,
+}, main)
+
+create("UICorner", {
+    CornerRadius = UDim.new(1, 0)
+}, input)
+
+local selected = "Ancient"
+local rarityButtons = {}
+
+local rarities = {
+    {name = "Ancient", color = Color3.fromRGB(0, 200, 170)},
+    {name = "Godly", color = Color3.fromRGB(240, 60, 75)},
+    {name = "Vintage", color = Color3.fromRGB(135, 45, 230)},
+    {name = "Unique", color = Color3.fromRGB(210, 150, 30)},
+}
+
+for i, rarity in ipairs(rarities) do
+    local button = create("TextButton", {
+        Name = rarity.name,
+        Size = UDim2.new(0, 68, 0, 65),
+        Position = UDim2.fromOffset(16 + (i-1)*79, 183),
+        BackgroundColor3 = rarity.color,
+        Text = rarity.name,
+        TextColor3 = white,
+        TextScaled = true,
+        Font = Enum.Font.GothamBold,
+        AutoButtonColor = true,
+    }, main)
+
+    create("UICorner", {
+        CornerRadius = UDim.new(0, 20)
+    }, button)
+
+    rarityButtons[rarity.name] = button
+
+    button.Activated:Connect(function()
+        selected = rarity.name
+
+        for name, other in pairs(rarityButtons) do
+            other.BackgroundTransparency =
+                name == selected and 0 or 0.2
+        end
+    end)
+end
+
+local clone = create("TextButton", {
+    Name = "CloneButton",
+    Size = UDim2.new(1, -40, 0, 67),
+    Position = UDim2.fromOffset(20, 275),
+    BackgroundColor3 = orange,
+    Text = "CLONAR",
+    TextColor3 = white,
+    TextScaled = true,
+    Font = Enum.Font.GothamBlack,
+    AutoButtonColor = true,
+}, main)
+
+create("UICorner", {
+    CornerRadius = UDim.new(1, 0)
+}, clone)
+
+local timerBox = create("Frame", {
+    Name = "TimerBox",
+    Size = UDim2.new(1, -40, 0, 76),
+    Position = UDim2.fromOffset(20, 357),
+    BackgroundColor3 = Color3.fromRGB(57, 30, 84),
+    Visible = false,
+}, main)
+
+create("UICorner", {
+    CornerRadius = UDim.new(0, 20)
+}, timerBox)
+
+local pumpkin = text(timerBox, "🎃",
+    UDim2.new(0, 65, 0, 65),
+    UDim2.fromOffset(0, 5), Enum.Font.GothamBlack)
+
+local timerText = text(timerBox, "05:00",
+    UDim2.new(1, -85, 0, 43),
+    UDim2.fromOffset(75, 2), Enum.Font.GothamBlack)
+
+local status = text(timerBox, "",
+    UDim2.new(1, -85, 0, 20),
+    UDim2.fromOffset(75, 45), Enum.Font.Gotham)
+
+status.TextColor3 = orange
+
+local track = create("Frame", {
+    Size = UDim2.new(1, -100, 0, 5),
+    Position = UDim2.fromOffset(85, 66),
+    BackgroundColor3 = Color3.fromRGB(75, 50, 95),
+    BorderSizePixel = 0,
+}, timerBox)
+
+create("UICorner", {
+    CornerRadius = UDim.new(1, 0)
+}, track)
+
+local bar = create("Frame", {
+    Size = UDim2.new(1, 0, 1, 0),
+    BackgroundColor3 = orange,
+    BorderSizePixel = 0,
+}, track)
+
+create("UICorner", {
+    CornerRadius = UDim.new(1, 0)
+}, bar)
+
+local running = false
+
+clone.Activated:Connect(function()
+    if running then return end
+
+    local weapon = input.Text:match("^%s*(.-)%s*$")
+
+    if not weapon or weapon == "" then
+        input.PlaceholderText = "¡Escribe el nombre del arma!"
+        return
+    end
+
+    running = true
+    timerBox.Visible = true
+    clone.Text = "PROCESANDO..."
+    status.Text = selected .. " • " .. weapon
+
+    task.spawn(function()
+        for seconds = 300, 0, -1 do
+            if not gui.Parent then return end
+
+            timerText.Text = string.format(
+                "%02d:%02d",
+                math.floor(seconds / 60),
+                seconds % 60
+            )
+
+            bar.Size = UDim2.new(seconds / 300, 0, 1, 0)
+
+            if seconds > 0 then
+                task.wait(1)
+            end
+        end
+
+        status.Text = "Temporizador terminado"
+        clone.Text = "CLONAR"
+        running = false
+    end)
+end)
+
+-- Adaptación para distintas pantallas de celular.
+local camera = workspace.CurrentCamera
+
+local function updateScale()
+    if not camera then return end
+
+    local viewport = camera.ViewportSize
+    scale.Scale = math.min(
+        1,
+        viewport.X / 370,
+        viewport.Y / 500
+    )
+end
+
+updateScale()
+
+if camera then
+    camera:GetPropertyChangedSignal("ViewportSize"):Connect(updateScale)
+end
+
+-- Permite mover la ventana con el dedo.
+local dragging = false
+local dragStart
+local startPosition
+
+main.InputBegan:Connect(function(inputObject)
+    if inputObject.UserInputType == Enum.UserInputType.Touch
+        or inputObject.UserInputType == Enum.UserInputType.MouseButton1 then
+
+        dragging = true
+        dragStart = inputObject.Position
+        startPosition = main.Position
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(inputObject)
+    if not dragging or not dragStart then return end
+
+    if inputObject.UserInputType == Enum.UserInputType.Touch
+        or inputObject.UserInputType == Enum.UserInputType.MouseMovement then
+
+        local delta = inputObject.Position - dragStart
+
+        main.Position = UDim2.new(
+            startPosition.X.Scale,
+            startPosition.X.Offset + delta.X,
+            startPosition.Y.Scale,
+            startPosition.Y.Offset + delta.Y
+        )
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(inputObject)
+    if inputObject.UserInputType == Enum.UserInputType.Touch
+        or inputObject.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
